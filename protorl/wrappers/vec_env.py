@@ -1,6 +1,6 @@
 from mpi4py import MPI
 import multiprocessing as mp
-import gym
+import gymnasium as gym
 import numpy as np
 import torch as T
 from protorl.wrappers.atari import RepeatActionAndMaxFrame

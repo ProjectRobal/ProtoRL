@@ -1,0 +1,14 @@
+Metadata-Version: 2.1
+Name: protorl
+Version: 0.1
+Summary: Torch based deep RL framework for rapid prototyping
+Home-page: https://www.github.com/philtabor/protorl
+Author: Phil Tabor
+Author-email: phil@neuralnet.ai
+License: MIT
+Platform: UNKNOWN
+Requires-Python: >=3.8
+License-File: LICENSE
+
+UNKNOWN
+

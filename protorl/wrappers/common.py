@@ -1,4 +1,4 @@
-import gym
+import gymnasium as gym
 from protorl.wrappers.atari import PreprocessFrame
 from protorl.wrappers.atari import RepeatActionAndMaxFrame, StackFrames
 from protorl.wrappers.single_threaded import SingleThreadedWrapper

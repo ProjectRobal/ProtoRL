@@ -1,0 +1,5 @@
+gymnasium==0.26.2
+matplotlib
+mpi4py
+numpy>=1.21
+torch>=1.11
