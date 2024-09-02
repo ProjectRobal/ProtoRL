@@ -1,15 +1,20 @@
+'''
+
+A loop without memory buffer.
+
+'''
+
 import numpy as np
 from protorl.utils.common import clip_reward
 
 
 class EpisodeLoop:
-    def __init__(self, agent, env, memory,
+    def __init__(self, agent, env,
                  sample_mode='uniform',
                  load_checkpoint=False, clip_reward=False,
                  prioritized=False):
         self.agent = agent
         self.env = env
-        self.memory = memory
         self.sample_mode = sample_mode
 
         self.prioritized = prioritized
@@ -35,19 +40,11 @@ class EpisodeLoop:
                 score += reward
                 r = clip_reward(reward) if self.clip_reward else reward
                 if not self.load_checkpoint:
-                    ep_end = done or trunc
-                    self.memory.store_transition([observation, action,
-                                                  r, observation_, ep_end])
-                    if self.memory.ready():
-                        transitions = \
-                            self.memory.sample_buffer(self.sample_mode)
-                        if self.prioritized:
-                            print("Agent update, prioritized!")
-                            s_idx, td_errors = self.agent.update(transitions)
-                            self.memory.update_priorities(s_idx, td_errors)
-                        else:
-                            print("Agent update!")
-                            self.agent.update(transitions)
+                    # ep_end = done or trunc
+                    
+                    # give agent reward
+                    self.agent.update(score)
+                    
                 observation = observation_
                 n_steps += 1
             score = np.mean(score)

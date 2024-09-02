@@ -10,6 +10,16 @@ from protorl.networks.head import ValueHead
 from protorl.utils.common import calculate_conv_output_dims
 
 
+# used for genetic algorithm
+def make_genetic_networks(env,hidden_layers=[512],*args,**kwargs):
+    
+    base = LinearBase(name="genetic_base",hidden_dims=hidden_layers,input_dims=env.observation_space.shape,*args,**kwargs)
+    head = SoftmaxHead(name="genetic_head",input_dims=[hidden_layers[-1]],hidden_layers=hidden_layers)
+    
+    actor = Sequential(base,head)
+    
+    return actor
+
 def make_dqn_networks(env, hidden_layers=[512], use_double=False,
                       use_atari=False, use_dueling=False, *args, **kwargs):
     algo = 'dueling_' if use_dueling else ''

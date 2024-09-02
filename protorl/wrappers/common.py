@@ -7,8 +7,8 @@ from protorl.wrappers.single_threaded import BatchDimensionWrapper
 
 def make_env(env_name, use_atari=False, shape=(84, 84, 1),
              repeat=4, clip_rewards=False, no_ops=0,
-             fire_first=False, n_threads=1):
-    env = gym.make(env_name)
+             fire_first=False, n_threads=1,**kwargs):
+    env = gym.make(env_name,**kwargs)
 
     if use_atari:
         env = RepeatActionAndMaxFrame(env, repeat, clip_rewards,

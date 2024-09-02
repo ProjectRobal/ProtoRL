@@ -9,6 +9,24 @@ class Actor:
         self.networks = []
         self.device = device or T.device('cuda:0' if T.cuda.is_available()
                                          else 'cpu')
+        
+    def init_network(self,initializer):
+        for net in self.networks:
+            initializer(net)
+            
+    def dump_parameters(self):
+        params=[]
+        
+        for net in self.networks:
+            param = net.parameters()
+            
+            for param in net.parameters():
+                params.append(param.numpy().copy())    
+                    
+        return params
+    
+    def load_parameters(self,params):
+        pass
 
     def save_models(self):
         for network in self.networks:
