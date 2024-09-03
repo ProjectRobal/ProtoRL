@@ -21,12 +21,22 @@ class Actor:
             param = net.parameters()
             
             for param in net.parameters():
-                params.append(param.numpy().copy())    
+                data = param.detach().clone()
+                params.append(data)
                     
         return params
     
     def load_parameters(self,params):
-        pass
+        
+        i = 0
+        
+        for net in self.networks:
+            param = net.parameters()
+            
+            for param in net.parameters():
+                param.copy_(params[i])
+                
+                i+=1
 
     def save_models(self):
         for network in self.networks:

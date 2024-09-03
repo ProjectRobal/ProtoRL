@@ -8,14 +8,25 @@ class GeneticAgent(Agent):
         self.population_count = population_count
         self.initializer = initializer
         
-        self.rewards=[]
-        self.past_networks=[]
+        self.rewards_and_networks=[]
+        
+        self.net_iterator = 0
+        
+        self.init_networks()
     
-    def init_network(self):
-        
-        network = []
-        
-        self.actor.init_network(self.initializer)
+    def init_networks(self):
+                
+        for i in range(self.population_count):
+            
+            self.actor.init_network(self.initializer)
+            
+            self.rewards_and_networks.append((0.0,self.actor.dump_parameters()))
+            
+
+        self.net_iterator = 0
+                    
+        self.actor.load_parameters(self.rewards_and_networks[self.net_iterator][1])
+            
 
     def choose_action(self, observation):
         action = self.actor.choose_action(observation)
@@ -23,15 +34,20 @@ class GeneticAgent(Agent):
 
     def update_networks(self):
         # do crossover and mutation
-        pass 
-
+        self.learner.update(self.rewards_and_networks)
+ 
     def update(self, transitions):
         
-        self.rewards.append(transitions)
+        # reward with a corresponding network
+        # self.rewards_and_networks.append((transitions,self.actor.dump_parameters()))
         
-        if len(self.rewards) > self.population_count:
+        self.rewards_and_networks[self.net_iterator][0] = transitions
+        
+        self.net_iterator+=1
+        
+        if self.net_iterator >= self.population_count:
             self.update_networks()
-        else:
-            # generate new weights for actor
-            self.actor.networks
+            self.net_iterator = 0
+        else:                        
+            self.actor.load_parameters(self.rewards_and_networks[self.net_iterator][1])
         
