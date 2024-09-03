@@ -34,7 +34,7 @@ class Actor:
             param = net.parameters()
             
             for param in net.parameters():
-                param.copy_(params[i])
+                param.data.copy_(params[i])
                 
                 i+=1
 

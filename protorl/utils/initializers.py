@@ -59,6 +59,6 @@ def he(network,gain=1.0):
     def he_init(m):
         if isinstance(m, T.nn.Linear):
             T.nn.init.xavier_normal_(m.weight,gain)
-            T.nn.init.xavier_normal_(m.bias,gain)
+            # T.nn.init.xavier_normal_(m.bias,gain)
             
     network.apply(he_init)

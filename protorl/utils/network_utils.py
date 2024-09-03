@@ -11,14 +11,20 @@ from protorl.utils.common import calculate_conv_output_dims
 
 
 # used for genetic algorithm
-def make_genetic_networks(env,hidden_layers=[512],*args,**kwargs):
+def make_genetic_networks(env,count=1,hidden_layers=[512,512],*args,**kwargs):
     
-    base = LinearBase(name="genetic_base",hidden_dims=hidden_layers,input_dims=env.observation_space.shape,*args,**kwargs)
-    head = SoftmaxHead(name="genetic_head",input_dims=[hidden_layers[-1]],hidden_layers=hidden_layers)
+    networks=[]
     
-    actor = Sequential(base,head)
+    n_actions = env.action_space.n
     
-    return actor
+    for i in range(count):
+    
+        base = LinearBase(name="genetic_base_"+str(i),hidden_dims=hidden_layers,input_dims=env.observation_space.shape,*args,**kwargs)
+        head = SoftmaxHead(name="genetic_head_"+str(i),n_actions=n_actions,input_dims=[hidden_layers[-1]])
+        
+        networks.append(Sequential(base,head))
+    
+    return networks
 
 def make_dqn_networks(env, hidden_layers=[512], use_double=False,
                       use_atari=False, use_dueling=False, *args, **kwargs):

@@ -96,7 +96,7 @@ class SoftmaxHead(NetworkCore, nn.Module):
         self.to(self.device)
 
     def forward(self, x):
-        probs = F.softmax(self.probs(x), dim=1)
+        probs = F.softmax(self.probs(x))
 
         return probs
 

@@ -1,6 +1,10 @@
 from protorl.learner.base import Learner
 import numpy as np
 import torch as T
+from copy import deepcopy
+from random import shuffle
+
+from protorl.utils.initializers import he
 
 # it will perform crossover and mutation 
 
@@ -17,8 +21,8 @@ class GeneticLearner(Learner):
         
         shape = tensor_a.shape
         
-        flatten_tensors_a = T.flatten(tensor_a).numpy()
-        flatten_tensors_b = T.flatten(tensor_b).numpy()
+        flatten_tensors_a = T.flatten(tensor_a).detach().numpy()
+        flatten_tensors_b = T.flatten(tensor_b).detach().numpy()
         
         size = len(flatten_tensors_a)        
         
@@ -33,41 +37,79 @@ class GeneticLearner(Learner):
         return (output_tensor1,output_tensor2)
     
     @classmethod
-    def params_crossover(cls,param_a,param_b):
+    def network_crossover(cls,param_a,param_b):
+
         
-        offspring_a = []
-        offspring_b = []
+        offsprings_param_a = []
+        offsprings_param_b = []
         
-        for i in range(len(param_a)):
-            offsprings = GeneticLearner.crossover(param_a[i],param_b[i])
+        for a,b in zip(param_a,param_b):
+            offsprings = GeneticLearner.crossover(a,b)
             
-            offspring_a.append(offsprings[0])
-            offspring_b.append(offsprings[1])
+            offsprings_param_a.append(offsprings[0])
+            offsprings_param_b.append(offsprings[1])
+
         
-        return (offspring_a,offspring_b)
+        return (offsprings_param_a,offsprings_param_b)
+    
+    @classmethod
+    def mutation(cls,network,muation_probability,gauss=(0.0,0.1)):
+        
+        params = network.parameters()
+        
+        for param in params:
+            
+            shape = param.shape
+            
+            w = T.flatten(param).detach().numpy()
+            
+            for x in w:
+                if np.random.random() < muation_probability:
+                    noise = np.random.normal(gauss[0],gauss[1])
+                    x += noise
+            
+            mutated = T.tensor(w).reshape(shape)
+            
+            param.data.copy_(mutated)
+            
+            
+            
 
     # a list of tuple with (reward,network parameters)
     def update(self, transitions):
         
         # sort the transitions
-        sorted_transistions = sorted(transitions,lambda x: x[0],reverse=True)
+        sorted_transistions = sorted(transitions,key = lambda x: x[0],reverse=True)
         
-        sorted_transistions = sorted_transistions[:self.members_to_keep]
+        # sorted_transistions = sorted_transistions[:self.members_to_keep]
         
         offsprings = []
         
-        for i in range(int(len(sorted_transistions)/2)):
+        for i in range(int(self.members_to_keep/2)):
             
-            offs = GeneticLearner.params_crossover(sorted_transistions[i*2],sorted_transistions[i*2 + 1])
+            offs = GeneticLearner.network_crossover(sorted_transistions[i*2][1].parameters(),sorted_transistions[i*2 + 1][1].parameters())
             
             offsprings.extend(offs)
             
-        transitions.clear()
+        for i,off in enumerate(offsprings):
+            network = sorted_transistions[i+self.members_to_keep][1]
+            
+            params = network.parameters()
+            
+            for p,param in enumerate(params):
+                param.data.copy_(off[p])
+                
+            GeneticLearner.mutation(network,self.mutation_probability,self.gauss)
+            
+        members_left = len(transitions)-len(offsprings)
         
-        transitions.extend(sorted_transistions)
+        if members_left>0:
+            # offset = self.members_to_keep+len(offsprings)
+            for i in range(members_left):
+                sorted_transistions[-(i+1)][1].apply(he)
         
-        transitions.extend([(0.0,x) for x in offsprings])
         
+        shuffle(transitions)
             
             
             

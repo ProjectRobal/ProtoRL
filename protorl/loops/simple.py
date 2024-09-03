@@ -39,14 +39,17 @@ class EpisodeLoop:
                 observation_, reward, done, trunc, info = self.env.step(action)
                 score += reward
                 r = clip_reward(reward) if self.clip_reward else reward
-                if not self.load_checkpoint:
+                # if not self.load_checkpoint:
                     # ep_end = done or trunc
                     
                     # give agent reward
-                    self.agent.update(score)
                     
                 observation = observation_
                 n_steps += 1
+            
+            print("Giving agent an reward")
+            self.agent.update(score)
+            
             score = np.mean(score)
             scores.append(score)
             steps.append(n_steps)
