@@ -10,6 +10,32 @@ from protorl.networks.head import ValueHead
 from protorl.utils.common import calculate_conv_output_dims
 
 
+# used for E.S.P algorithm
+def make_esp_networks(env,count=1,hidden_layers=[512,512],*args,**kwargs):
+    
+    networks=[]
+    
+    n_actions = env.action_space.n
+    
+    # an base network that will do all works
+    
+    base = LinearBase(name="esp_base",hidden_dims=hidden_layers,input_dims=env.observation_space.shape,*args,**kwargs)
+    head = SoftmaxHead(name="esp_head",n_actions=n_actions,input_dims=[hidden_layers[-1]])
+    
+    base_network = Sequential(base,head)
+    
+    
+    # add additional numbers one for cumulative rewards and second for usage count
+    
+    for i in range(count):
+    
+        base = LinearBase(name="esp_base_"+str(i),hidden_dims=hidden_layers,input_dims=env.observation_space.shape,*args,**kwargs)
+        head = SoftmaxHead(name="esp_head_"+str(i),n_actions=n_actions,input_dims=[hidden_layers[-1]])
+        
+        networks.append(Sequential(base,head))
+    
+    return base_network,networks
+
 # used for genetic algorithm
 def make_genetic_networks(env,count=1,hidden_layers=[512,512],*args,**kwargs):
     

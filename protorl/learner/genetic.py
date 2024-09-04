@@ -16,8 +16,7 @@ class GeneticLearner(Learner):
         self.gauss = (mutation_mean,mutation_std)
         self.members_to_keep = members_to_keep
     
-    @classmethod
-    def crossover(cls,tensor_a,tensor_b):
+    def crossover(self,tensor_a,tensor_b):
         
         shape = tensor_a.shape
         
@@ -36,15 +35,14 @@ class GeneticLearner(Learner):
         
         return (output_tensor1,output_tensor2)
     
-    @classmethod
-    def network_crossover(cls,param_a,param_b):
+    def network_crossover(self,param_a,param_b):
 
         
         offsprings_param_a = []
         offsprings_param_b = []
         
         for a,b in zip(param_a,param_b):
-            offsprings = GeneticLearner.crossover(a,b)
+            offsprings = self.crossover(a,b)
             
             offsprings_param_a.append(offsprings[0])
             offsprings_param_b.append(offsprings[1])
@@ -52,8 +50,7 @@ class GeneticLearner(Learner):
         
         return (offsprings_param_a,offsprings_param_b)
     
-    @classmethod
-    def mutation(cls,network,muation_probability,gauss=(0.0,0.1)):
+    def mutation(self,network,muation_probability,gauss=(0.0,0.1)):
         
         params = network.parameters()
         
@@ -87,7 +84,7 @@ class GeneticLearner(Learner):
         
         for i in range(int(self.members_to_keep/2)):
             
-            offs = GeneticLearner.network_crossover(sorted_transistions[i*2][1].parameters(),sorted_transistions[i*2 + 1][1].parameters())
+            offs = self.network_crossover(sorted_transistions[i*2][1].parameters(),sorted_transistions[i*2 + 1][1].parameters())
             
             offsprings.extend(offs)
             
@@ -99,7 +96,7 @@ class GeneticLearner(Learner):
             for p,param in enumerate(params):
                 param.data.copy_(off[p])
                 
-            GeneticLearner.mutation(network,self.mutation_probability,self.gauss)
+            self.mutation(network,self.mutation_probability,self.gauss)
             
         members_left = len(transitions)-len(offsprings)
         
