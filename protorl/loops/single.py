@@ -6,7 +6,7 @@ class EpisodeLoop:
     def __init__(self, agent, env, memory,
                  sample_mode='uniform',
                  load_checkpoint=False, clip_reward=False,
-                 prioritized=False):
+                 prioritized=False,filename=None):
         self.agent = agent
         self.env = env
         self.memory = memory
@@ -15,6 +15,8 @@ class EpisodeLoop:
         self.prioritized = prioritized
         self.load_checkpoint = load_checkpoint
         self.clip_reward = clip_reward
+        
+        self.filename = filename
 
         self.functions = []
 
@@ -42,17 +44,22 @@ class EpisodeLoop:
                         transitions = \
                             self.memory.sample_buffer(self.sample_mode)
                         if self.prioritized:
-                            print("Agent update, prioritized!")
+                            # print("Agent update, prioritized!")
                             s_idx, td_errors = self.agent.update(transitions)
                             self.memory.update_priorities(s_idx, td_errors)
                         else:
-                            print("Agent update!")
+                            # print("Agent update!")
                             self.agent.update(transitions)
                 observation = observation_
                 n_steps += 1
             score = np.mean(score)
             scores.append(score)
             steps.append(n_steps)
+            
+            # save scores if filename is specified
+            if self.filename is not None:
+                with open(self.filename,"a+") as collection:
+                    collection.write("{};{};{}\n".format(i,n_steps,score))
 
             avg_score = np.mean(scores[-100:])
             print('episode {} ep score {:.1f} average score {:.1f} n steps {}'.

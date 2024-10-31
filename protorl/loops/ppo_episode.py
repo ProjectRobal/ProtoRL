@@ -6,7 +6,7 @@ class EpisodeLoop:
     def __init__(self, agent, env, memory, n_epochs, T, n_batches,
                  n_threads=1, adapt_actions=False,
                  load_checkpoint=False, clip_reward=False,
-                 extra_functionality=None, seed=None):
+                 extra_functionality=None, seed=None,filename=None):
         self.agent = agent
         self.seed = seed
         self.env = env
@@ -21,6 +21,7 @@ class EpisodeLoop:
         self.step_counter = 0
 
         self.functions = extra_functionality or []
+        self.filename = filename
 
     def run(self, n_episodes=1):
         if self.load_checkpoint:
@@ -67,6 +68,10 @@ class EpisodeLoop:
                 n_steps += 1
             scores.append(np.mean(score))
             steps.append(n_steps)
+            
+            if self.filename is not None:
+                with open(self.filename,"a+") as collection:
+                    collection.write("{};{};{}\n".format(i,n_steps,score))
 
             avg_score = np.mean(scores[-100:])
             print('episode {} average score {:.1f} n steps {}'.

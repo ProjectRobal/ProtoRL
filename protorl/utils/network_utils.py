@@ -36,21 +36,37 @@ def make_esp_networks(env,count=1,hidden_layers=[512,512],*args,**kwargs):
     
     return base_network,networks
 
-# used for genetic algorithm
+# used for genetic algorithm, generate population of count members, save them and then return one parent network which is going to be used for loading saved members
 def make_genetic_networks(env,count=1,hidden_layers=[512,512],*args,**kwargs):
-    
-    networks=[]
-    
+        
     n_actions = env.action_space.n
+    
+    # Generate networks and save them
     
     for i in range(count):
     
         base = LinearBase(name="genetic_base_"+str(i),hidden_dims=hidden_layers,input_dims=env.observation_space.shape,*args,**kwargs)
         head = SoftmaxHead(name="genetic_head_"+str(i),n_actions=n_actions,input_dims=[hidden_layers[-1]])
         
-        networks.append(Sequential(base,head))
+        # networks.append(Sequential(base,head))
+        
+        network = Sequential(base,head)
+        for net in network:
+            net.save_checkpoint()
+        
+        del network
+        del base
+        del head
+        
+    base = LinearBase(name="genetic_base",hidden_dims=hidden_layers,input_dims=env.observation_space.shape,*args,**kwargs)
+    head = SoftmaxHead(name="genetic_head",n_actions=n_actions,input_dims=[hidden_layers[-1]])
+        
+    # networks.append(Sequential(base,head))
+        
+    network = Sequential(base,head)
+    # network.save_checkpoint()
     
-    return networks
+    return network
 
 def make_dqn_networks(env, hidden_layers=[512], use_double=False,
                       use_atari=False, use_dueling=False, *args, **kwargs):
@@ -208,6 +224,36 @@ def make_sac_networks(env):
 
     return actor, critic_1, critic_2, value, target_value
 
+def make_sac_networks_disc(env):
+    actor_base = LinearBase(name='sac_actor_base',
+                            input_dims=env.observation_space.shape)
+
+    actor_head = SoftmaxHead(n_actions=env.action_space.shape,
+                                  name='sac_actor_head')
+    actor = Sequential(actor_base, actor_head)
+
+    input_dims = [env.observation_space.shape + env.action_space.shape]
+    critic_base_1 = CriticBase(name='sac_critic_1_base',
+                               input_dims=input_dims)
+    critic_head_1 = ValueHead(name='sac_critic_1_head')
+    critic_1 = Sequential(critic_base_1, critic_head_1)
+
+    critic_base_2 = CriticBase(name='sac_critic_2_base',
+                               input_dims=input_dims)
+    critic_head_2 = ValueHead(name='sac_critic_2_head')
+    critic_2 = Sequential(critic_base_2, critic_head_2)
+
+    value_base = LinearBase(name='sac_value_base',
+                            input_dims=env.observation_space.shape)
+    value_head = ValueHead(name='sac_value_head')
+    value = Sequential(value_base, value_head)
+
+    target_value_base = LinearBase(name='sac_target_value_base',
+                                   input_dims=env.observation_space.shape)
+    target_value_head = ValueHead(name='sac_target_value_head')
+    target_value = Sequential(target_value_base, target_value_head)
+
+    return actor, critic_1, critic_2, value, target_value
 
 def make_ppo_networks(env, action_space='discrete',
                       actor_hidden_dims=[128, 128],

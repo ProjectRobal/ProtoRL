@@ -2,11 +2,9 @@ from protorl.agents.base import Agent
 
 
 class ESPAgent(Agent):
-    def __init__(self, actor, learner, initializer):
+    def __init__(self, actor, learner):
         super().__init__(actor=actor, learner=learner)
-        
-        self.initializer = initializer
-                                    
+                                            
 
     def choose_action(self, observation):
         action = self.actor.choose_action(observation)

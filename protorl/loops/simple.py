@@ -10,17 +10,16 @@ from protorl.utils.common import clip_reward
 
 class EpisodeLoop:
     def __init__(self, agent, env,
-                 sample_mode='uniform',
                  load_checkpoint=False, clip_reward=False,
-                 prioritized=False):
+                 filename=None):
         self.agent = agent
         self.env = env
-        self.sample_mode = sample_mode
 
-        self.prioritized = prioritized
         self.load_checkpoint = load_checkpoint
         self.clip_reward = clip_reward
-
+        
+        self.filename = filename
+        
         self.functions = []
 
     def run(self, n_episodes=1):
@@ -47,8 +46,13 @@ class EpisodeLoop:
                 observation = observation_
                 n_steps += 1
             
-            print("Giving agent an reward")
+            # print("Giving agent an reward")
             self.agent.update(score)
+            
+            
+            if self.filename is not None:
+                with open(self.filename,"a+") as collection:
+                    collection.write("{};{};{}\n".format(i,n_steps,score))
             
             score = np.mean(score)
             scores.append(score)

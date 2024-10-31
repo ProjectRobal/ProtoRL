@@ -78,6 +78,9 @@ def calc_adv_and_returns(values, values_, rewards, dones,
     adv = adv[:-1]
     adv = T.tensor(adv, dtype=T.double,
                    device=device, requires_grad=False).unsqueeze(2)
+    print("Shape adv: ",adv.shape)
+    # the problem is with unsqueeze value has only one dimension where adv has two before unsqueeze
+    print("Shape value: ",values.shape)
     returns = adv + values.unsqueeze(2)
     adv = (adv - adv.mean()) / (adv.std() + 1e-4)
     return adv, returns
