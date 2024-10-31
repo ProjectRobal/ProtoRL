@@ -9,6 +9,9 @@ from protorl.networks.head import DeterministicHead, MeanAndSigmaHead
 from protorl.networks.head import ValueHead
 from protorl.utils.common import calculate_conv_output_dims
 
+from protorl.utils.initializers import he
+
+import os
 
 # used for E.S.P algorithm
 def make_esp_networks(env,count=1,hidden_layers=[512,512],*args,**kwargs):
@@ -42,28 +45,41 @@ def make_genetic_networks(env,count=1,hidden_layers=[512,512],*args,**kwargs):
     n_actions = env.action_space.n
     
     # Generate networks and save them
+
+    BASE_GENETIC_NAME = "genetic_base"
+    HEAD_GENETIC_NAME = "genetic_head"
+
+    base = LinearBase(name=BASE_GENETIC_NAME,hidden_dims=hidden_layers,input_dims=env.observation_space.shape,*args,**kwargs)
+    head = SoftmaxHead(name=HEAD_GENETIC_NAME,n_actions=n_actions,input_dims=[hidden_layers[-1]])
+    
+    # networks.append(Sequential(base,head))
+    
+    network = Sequential(base,head)
+
+    checkpoint_dir = network[0].checkpoint_dir
+        
+    for net in network:
+        net.save_checkpoint()
     
     for i in range(count):
-    
-        base = LinearBase(name="genetic_base_"+str(i),hidden_dims=hidden_layers,input_dims=env.observation_space.shape,*args,**kwargs)
-        head = SoftmaxHead(name="genetic_head_"+str(i),n_actions=n_actions,input_dims=[hidden_layers[-1]])
-        
-        # networks.append(Sequential(base,head))
-        
-        network = Sequential(base,head)
+
+        network.apply(he)
+
         for net in network:
             net.save_checkpoint()
         
-        del network
-        del base
-        del head
+        base_name = BASE_GENETIC_NAME + "_{}".format(i)
+        head_name = HEAD_GENETIC_NAME + "_{}".format(i)
         
-    base = LinearBase(name="genetic_base",hidden_dims=hidden_layers,input_dims=env.observation_space.shape,*args,**kwargs)
-    head = SoftmaxHead(name="genetic_head",n_actions=n_actions,input_dims=[hidden_layers[-1]])
+        base_path = os.path.join(checkpoint_dir,base_name)
+        head_path = os.path.join(checkpoint_dir,head_name)
         
-    # networks.append(Sequential(base,head))
+        parent_base_path = os.path.join(checkpoint_dir,BASE_GENETIC_NAME)
+        parent_head_path = os.path.join(checkpoint_dir,HEAD_GENETIC_NAME)
         
-    network = Sequential(base,head)
+        os.rename(parent_base_path,base_path)
+        os.rename(parent_head_path,head_path)
+
     # network.save_checkpoint()
     
     return network

@@ -29,8 +29,8 @@ class GeneticLearner(Learner):
         
         shape = tensor_a.shape
         
-        flatten_tensors_a = T.flatten(tensor_a).detach().numpy()
-        flatten_tensors_b = T.flatten(tensor_b).detach().numpy()
+        flatten_tensors_a = T.flatten(tensor_a).cpu().detach().numpy()
+        flatten_tensors_b = T.flatten(tensor_b).cpu().detach().numpy()
         
         size = len(flatten_tensors_a)        
         
@@ -67,12 +67,17 @@ class GeneticLearner(Learner):
             
             shape = param.shape
             
-            w = T.flatten(param).detach().numpy()
+            w = T.flatten(param).cpu().detach().numpy()
+
+            noise = np.random.normal(gauss[0],gauss[1],len(w))
+            mask = np.random.random(len(w)) < muation_probability
             
-            for x in w:
-                if np.random.random() < muation_probability:
-                    noise = np.random.normal(gauss[0],gauss[1])
-                    x += noise
+            # for x in w:
+            #     if np.random.random() < muation_probability:
+            #         noise = np.random.normal(gauss[0],gauss[1])
+            #         x += noise
+
+            w += ( noise * mask )
             
             mutated = T.tensor(w).reshape(shape)
             
@@ -150,6 +155,7 @@ class GeneticLearner(Learner):
             
             parent_a = sorted_transistions[i*2][1]
             parent_b = sorted_transistions[i*2 + 1][1]
+            print("Crossover between {} and {}".format(parent_a,parent_b))
             
             for layer_id in range(layer_count):
             
@@ -174,24 +180,25 @@ class GeneticLearner(Learner):
                 for p,param in enumerate(self.network[layer_id].parameters()):
                     param.data.copy_(childA[p])
                     
-                self.save_network_with_id(parent_a + cross_point)
+                self.save_network_with_id(sorted_transistions[(i+cross_point)*2][1])
                 
                 for p,param in enumerate(self.network[layer_id].parameters()):
                     param.data.copy_(childB[p])
                                 
-                self.save_network_with_id(parent_b + cross_point)                
+                self.save_network_with_id(sorted_transistions[(i+cross_point)*2 + 1][1])                
                 
             
             # offs = self.network_crossover(sorted_transistions[i*2][1].parameters(),sorted_transistions[i*2 + 1][1].parameters())
             
             # offsprings.extend(offs)
             
-        for i in range(cross_point,cross_point*2,1):
-            self.load_network_with_id(i)
+        for i in range(cross_point*2,cross_point*4,1):
+            print("Mutation of network {}".format(i))
+            self.load_network_with_id(sorted_transistions[i][1])
                 
             self.mutation(self.network,self.mutation_probability)
                 
-            self.save_network_with_id(i)
+            self.save_network_with_id(sorted_transistions[i][1])
                 
             
         # for i,off in enumerate(offsprings):
@@ -204,7 +211,7 @@ class GeneticLearner(Learner):
                 
         #     self.mutation(network,self.mutation_probability,self.gauss)
             
-        members_left = len(transitions)-cross_point*2
+        members_left = len(transitions)-cross_point*4
         
         if members_left>0:
             # offset = self.members_to_keep+len(offsprings)
@@ -212,9 +219,10 @@ class GeneticLearner(Learner):
             #     sorted_transistions[-(i+1)][1].apply(he)
             
             for i in range(members_left):
-                self.load_network_with_id(cross_point*2 + i)
+                print("Generating new network {}".format(cross_point*4 + i))
+                self.load_network_with_id(sorted_transistions[cross_point*4 + i][1])
                 self.network.apply(he)
-                self.save_network_with_id(cross_point*2 + i)
+                self.save_network_with_id(sorted_transistions[cross_point*4 + i][1])
         
         
         shuffle(transitions)
